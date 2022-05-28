@@ -5,8 +5,8 @@ WORKDIR /app
 COPY . .
 
 RUN dotnet restore && \
-    dotnet tool install --global dotnet-ef && \
     export PATH="$PATH:/root/.dotnet/tools" && \
+    dotnet tool install --global dotnet-ef && \
     dotnet ef database update && \
     dotnet publish -c Release -o out
 
