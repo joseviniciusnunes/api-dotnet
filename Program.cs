@@ -1,11 +1,38 @@
 var builder = WebApplication.CreateBuilder(args);
+
+
 builder.Services.AddDbContext<AppDbContext>();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddDbContext<AppDbContext>();
+
 var app = builder.Build();
+
+app.UseSwagger();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+    options.RoutePrefix = "doc";
+});
+
 
 app.MapGet("/v1/usuarios", (AppDbContext context) =>
 {
     var usuarios = context.Usuario;
     return usuarios is not null ? Results.Ok(usuarios) : Results.NotFound();
+});
+
+app.MapGet("/v1/usuarios/{id}", (AppDbContext context, String id) =>
+{
+    var usuario = context.Usuario.Find(id);
+
+    if (usuario is null)
+    {
+        return Results.BadRequest("Usuário não encontrado");
+    }
+
+    return Results.Ok(usuario);
 });
 
 app.MapPost("/v1/usuarios", (AppDbContext context, DtoUsuarioCreate model) =>
@@ -22,7 +49,7 @@ app.MapPost("/v1/usuarios", (AppDbContext context, DtoUsuarioCreate model) =>
     return Results.Created($"/v1/todos/{usuario.Id}", usuario);
 });
 
-app.MapPut("/v1/usuarios/{id}", (AppDbContext context, DtoUsuarioUpdate model) =>
+app.MapPut("/v1/usuarios/{id}", (AppDbContext context, DtoUsuarioUpdate model, String id) =>
 {
     var usuario = model.MapTo();
     if (!model.IsValid)
@@ -30,12 +57,32 @@ app.MapPut("/v1/usuarios/{id}", (AppDbContext context, DtoUsuarioUpdate model) =
         return Results.BadRequest(model.Notifications);
     }
 
-    var usuarioUpdated = context.Usuario.Find(usuario.Id);
-    //usuarioUpdated.Nome = usuario.Nome;
-    //usuarioUpdated.Email = usuario.Email;    
+    var usuarioUpdated = context.Usuario.Find(id);
+
+    if (usuarioUpdated is null)
+    {
+        return Results.BadRequest("Usuário não encontrado");
+    }
+
+    usuarioUpdated.Nome = usuario.Nome;
+    usuarioUpdated.Email = usuario.Email;
     context.SaveChanges();
 
-    return Results.Created($"/v1/todos/{usuario.Id}", usuario);
+    return Results.Accepted($"/v1/todos/{usuarioUpdated.Id}", usuarioUpdated);
+});
+
+app.MapDelete("/v1/usuarios/{id}", (AppDbContext context, String id) =>
+{
+    var usuarioUpdated = context.Usuario.Find(id);
+
+    if (usuarioUpdated is null)
+    {
+        return Results.BadRequest("Usuário não encontrado");
+    }
+    context.Usuario.Remove(usuarioUpdated);
+    context.SaveChanges();
+
+    return Results.Accepted($"/v1/todos/{usuarioUpdated.Id}", "Registro deletado");
 });
 
 app.Run();

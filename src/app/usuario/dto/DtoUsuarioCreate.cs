@@ -3,8 +3,8 @@ using Flunt.Validations;
 
 public class DtoUsuarioCreate : Notifiable<Notification>
 {
-    public string Nome { get; set; }
-    public string Email { get; set; }
+    public string? Nome { get; set; }
+    public string? Email { get; set; }
 
     public UsuarioModel MapTo()
     {
@@ -18,6 +18,12 @@ public class DtoUsuarioCreate : Notifiable<Notification>
             .IsNotNull(Email, "Informe o e-mail da tarefa")
             .IsEmail(Email, "Informe um e-mail válido"));
 
-        return new UsuarioModel(Guid.NewGuid().ToString(), Nome, Email, false);
+        return new UsuarioModel()
+        {
+            Id = Guid.NewGuid().ToString(),
+            Nome = Nome,
+            Email = Email,
+            Active = true
+        };
     }
 }

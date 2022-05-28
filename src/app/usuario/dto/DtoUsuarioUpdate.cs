@@ -6,7 +6,7 @@ public class DtoUsuarioUpdate : Notifiable<Notification>
     public string Nome { get; set; }
     public string Email { get; set; }
 
-    public UsuarioModel MapTo()
+    public DtoUsuarioUpdate MapTo()
     {
         AddNotifications(new Contract<Notification>()
             .Requires()
@@ -18,6 +18,10 @@ public class DtoUsuarioUpdate : Notifiable<Notification>
             .IsNotNull(Email, "Informe o e-mail da tarefa")
             .IsEmail(Email, "Informe um e-mail válido"));
 
-        return new UsuarioModel(Guid.NewGuid().ToString(), Nome, Email, false);
+        return new DtoUsuarioUpdate()
+        {
+            Nome = Nome,
+            Email = Email,
+        };
     }
 }
